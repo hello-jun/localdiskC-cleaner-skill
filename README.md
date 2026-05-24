@@ -38,16 +38,30 @@ Claude ❯  正在扫描 C 盘...
 
 ## 安装
 
-### Claude Code
+### 方式一：一行命令（推荐，跨 runtime）
 
 ```bash
-claude plugin add https://github.com/hello-jun/localdiskC-cleaner-skill
+npx skills add hello-jun/localdiskC-cleaner-skill
 ```
 
-### 其他 runtime（Codex、Cursor、Gemini CLI 等）
+自动检测当前 runtime（Claude Code、Codex、Cursor、Gemini CLI 等 40+ 兼容工具），安装到正确路径。也可以直接告诉你的 AI 助手：
+
+> "帮我安装这个 skill：https://github.com/hello-jun/localdiskC-cleaner-skill"
+
+### 方式二：手动安装
 
 <details>
 <summary>展开查看各 runtime 的手动安装方式</summary>
+
+**Claude Code**
+
+把 `SKILL.md` 的内容直接粘贴进对话即可，或 clone 到本地后引用：
+
+```bash
+git clone https://github.com/hello-jun/localdiskC-cleaner-skill
+```
+
+**其他 runtime（Codex、Cursor、Gemini CLI 等）**
 
 | Runtime | 安装路径 |
 |---------|----------|
