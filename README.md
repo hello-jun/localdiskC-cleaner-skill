@@ -41,7 +41,7 @@ Claude ❯  正在扫描 C 盘...
 ### Claude Code
 
 ```bash
-claude plugin add https://github.com/luckyzjun/localdiskc-cleaner-skill
+claude plugin add https://github.com/hello-jun/localdiskC-cleaner-skill
 ```
 
 ### 其他 runtime（Codex、Cursor、Gemini CLI 等）
@@ -57,7 +57,7 @@ claude plugin add https://github.com/luckyzjun/localdiskc-cleaner-skill
 | 其他 runtime | clone 到对应 runtime 的 `skills/` 目录 |
 
 ```bash
-git clone https://github.com/luckyzjun/localdiskc-cleaner-skill <上面对应的路径>
+git clone https://github.com/hello-jun/localdiskC-cleaner-skill <上面对应的路径>
 ```
 
 也可以把 `SKILL.md` 的内容直接粘贴进对话，所有 runtime 都支持。
