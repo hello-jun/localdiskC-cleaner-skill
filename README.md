@@ -41,7 +41,7 @@ Claude ❯  正在扫描 C 盘...
 ### 方式一：一行命令（推荐，跨 runtime）
 
 ```bash
-npx skills add hello-jun/localdiskC-cleaner-skill
+npx skills add hello-jun/localdiskC-cleaner-skill --yes
 ```
 
 自动检测当前 runtime（Claude Code、Codex、Cursor、Gemini CLI 等 40+ 兼容工具），安装到正确路径。也可以直接告诉你的 AI 助手：
