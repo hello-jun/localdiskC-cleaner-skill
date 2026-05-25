@@ -6,7 +6,7 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-green)](https://agentskills.io)
 [![Windows](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-blue)](#)
 
-基于 [Agent Skills 协议](https://agentskills.io)，在 Claude Code、Codex、Cursor、Gemini CLI、VS Code、GitHub Copilot、Roo Code、OpenCode 等 40+ 兼容 runtime 中通用。
+一个清理本地磁盘 C 盘空间的工具技能，基于 [Agent Skills 协议](https://agentskills.io)，在 Claude Code、Codex、Cursor、Gemini CLI、VS Code、GitHub Copilot、Roo Code、OpenCode 等 40+ 兼容 runtime 中通用。
 
 [看效果](#效果示例) · [安装](#安装) · [工作原理](#工作原理) · [它清理了什么](#可清理项) · [安全规则](#安全规则)
 
