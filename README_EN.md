@@ -215,6 +215,15 @@ Move my Documents folder to the E drive
 
 ---
 
+## Contact
+
+Feel free to reach out and connect:
+
+- **QQ:** 1792937214
+- **WeChat:** luckyzjun
+
+---
+
 ## License
 
 [MIT License](LICENSE)

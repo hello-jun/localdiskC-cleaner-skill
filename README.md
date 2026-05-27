@@ -217,6 +217,15 @@ Help me free up space on my C drive
 
 ---
 
+## 交流
+
+欢迎加我交流，一起探讨技术问题：
+
+- **QQ：** 1792937214
+- **微信：** luckyzjun
+
+---
+
 ## 许可证
 
 [MIT License](LICENSE)
