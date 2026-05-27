@@ -8,7 +8,7 @@
 
 A skill for cleaning and reclaiming Windows C drive space, based on the [Agent Skills protocol](https://agentskills.io). Works across 40+ compatible runtimes including Claude Code, Codex, Cursor, Gemini CLI, VS Code, GitHub Copilot, Roo Code, OpenCode, and more.
 
-[See it in action](#demo) · [Install](#install) · [How it works](#how-it-works) · [What gets cleaned](#cleanable-items) · [Safety rules](#safety-rules)
+[See it in action](#demo) · [Environment Setup](#environment-setup-for-beginners) · [Install](#install) · [How it works](#how-it-works) · [What gets cleaned](#cleanable-items) · [Safety rules](#safety-rules)
 
 ---
 
@@ -33,6 +33,68 @@ Claude ❯  Scanning C drive...
 
       C drive free space: 15.31 GB → 102.33 GB
 ```
+
+---
+
+## Environment Setup (For Beginners)
+
+If you're not a programmer or haven't used AI coding tools before, please complete these setup steps first.
+
+### 1. Install Node.js
+
+Node.js is a JavaScript runtime that enables the `npx` command.
+
+**Steps:**
+
+1. Visit the [Node.js website](https://nodejs.org/)
+2. Download the **LTS (Long Term Support)** version (recommended)
+3. Run the installer and click "Next" through the prompts
+4. After installation, open Terminal (search for `Terminal` on Windows) and verify:
+
+```bash
+node --version
+npm --version
+```
+
+If version numbers appear (e.g., `v18.17.0`), installation was successful.
+
+### 2. Install an AI Assistant (OpenCode Example)
+
+OpenCode is an AI coding assistant that can execute commands and write code for you.
+
+**Steps:**
+
+1. Open Terminal (search for `Terminal` on Windows)
+2. Run the following command to install OpenCode globally:
+
+```bash
+npm install -g opencode-ai
+```
+
+3. After installation, type `opencode` in the terminal to start
+
+**Alternative AI assistants:**
+- [Claude Code](https://claude.ai/) (requires Anthropic API)
+- [Cursor](https://cursor.sh/) (built-in AI features)
+- [GitHub Copilot](https://github.com/features/copilot) (requires GitHub account)
+
+### 3. Configure AI Model API KEY
+
+AI assistants need to connect to a large language model to work. You'll need to obtain an API KEY.
+
+**How to get an API KEY:**
+
+| Provider | How to Get | Notes |
+|----------|------------|-------|
+| DeepSeek | [platform.deepseek.com](https://platform.deepseek.com/) | Affordable pricing, recommended |
+| Zhipu AI | [open.bigmodel.cn](https://www.bigmodel.cn/glm-coding?ic=AGPB6AWSVL) | Free tier available for new users |
+| Xiaomi MiMo | [platform.xiaomimimo.com](https://platform.xiaomimimo.com?ref=SXX5PS) | Use invite code SXX5PS for bonus credits |
+| OpenAI | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | Requires VPN, pay-per-use |
+| Anthropic | [console.anthropic.com](https://console.anthropic.com/) | Requires VPN, pay-per-use |
+
+**Configure API KEY in OpenCode:**
+
+Please refer to the official tutorial: [OpenCode DeepSeek API Key Configuration](https://learnopencode.com/1-start/04b-deepseek.html)
 
 ---
 

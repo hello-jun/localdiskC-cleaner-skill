@@ -8,7 +8,7 @@
 
 一个清理本地磁盘 C 盘空间的工具技能，基于 [Agent Skills 协议](https://agentskills.io)，在 Claude Code、Codex、Cursor、Gemini CLI、VS Code、GitHub Copilot、Roo Code、OpenCode 等 40+ 兼容 runtime 中通用。
 
-[看效果](#效果示例) · [安装](#安装) · [工作原理](#工作原理) · [它清理了什么](#可清理项) · [安全规则](#安全规则)
+[看效果](#效果示例) · [环境准备](#环境准备小白用户必读) · [安装](#安装) · [工作原理](#工作原理) · [它清理了什么](#可清理项) · [安全规则](#安全规则)
 
 **Other Languages:** [English](README_EN.md)
 
@@ -35,6 +35,68 @@ Claude ❯  正在扫描 C 盘...
 
       C 盘可用空间：15.31 GB → 102.33 GB
 ```
+
+---
+
+## 环境准备（小白用户必读）
+
+如果你不是程序员，或者没有使用过 AI 编程工具，请先完成以下准备工作。
+
+### 1. 安装 Node.js
+
+Node.js 是运行 JavaScript 的环境，安装后可以使用 `npx` 命令。
+
+**步骤：**
+
+1. 访问 [Node.js 官网](https://nodejs.org/zh-cn/)
+2. 下载 **LTS（长期支持版）**（小白用户推荐使用 Windows 安装程序.msi, [下载链接](https://nodejs.org/dist/v24.16.0/node-v24.16.0-x64.msi)）
+3. 双击安装包，一路点击“下一步”即可
+4. 安装完成后，打开终端（同时按下 Windows 键+Q 键 搜索 `终端`），输入以下命令验证：
+
+```bash
+node --version
+npm --version
+```
+
+如果显示版本号（如 `v24.16.0`），说明安装成功。
+
+### 2. 安装 AI 助手（以 OpenCode 为例）
+
+OpenCode 是一个 AI 编程助手，可以帮你执行命令、编写代码。
+
+**步骤：**
+
+1. 打开终端（Windows 搜索 `终端`）
+2. 运行以下命令全局安装 OpenCode：
+
+```bash
+npm install -g opencode-ai
+```
+
+3. 安装完成后，在终端中输入 `opencode` 即可启动
+
+**其他可选的 AI 助手：**
+- [Claude Code](https://claude.ai/)（需要 Anthropic API）
+- [Cursor](https://cursor.sh/)（内置 AI 功能）
+- [GitHub Copilot](https://github.com/features/copilot)（需要 GitHub 账号）
+
+### 3. 配置大模型 API KEY
+
+AI 助手需要连接大语言模型才能工作。你需要获取一个 API KEY。
+
+**获取 API KEY 的方式：**
+
+| 服务商 | 获取方式 | 说明 |
+|--------|----------|------|
+| 深度求索（DeepSeek） | [platform.deepseek.com](https://platform.deepseek.com/) | 国内服务，价格便宜（强烈推荐） |
+| 智谱 AI | [open.bigmodel.cn](https://www.bigmodel.cn/glm-coding?ic=AGPB6AWSVL) | 国内服务，注册有免费额度，够用了 |
+| xiao mi MiMo | [https://platform.xiaomimimo.com/](https://platform.xiaomimimo.com?ref=SXX5PS) | 注册填写邀请码 SXX5PS，送10块钱体验金，够用了|
+| OpenAI | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | 需要科学上网，按使用量付费 |
+| Anthropic | [console.anthropic.com](https://console.anthropic.com/) | 需要科学上网，按使用量付费 |
+
+**在 OpenCode 中配置 API KEY：**
+
+请参照教程：[OpenCode 配置 DeepSeek API Key](https://learnopencode.com/1-start/04b-deepseek.html)
 
 ---
 
