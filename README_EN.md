@@ -8,7 +8,9 @@
 
 A skill for cleaning and reclaiming Windows C drive space, based on the [Agent Skills protocol](https://agentskills.io). Works across 40+ compatible runtimes including Claude Code, Codex, Cursor, Gemini CLI, VS Code, GitHub Copilot, Roo Code, OpenCode, and more.
 
-[See it in action](#demo) · [Environment Setup](#environment-setup-for-beginners) · [Install](#install) · [How it works](#how-it-works) · [What gets cleaned](#cleanable-items) · [Safety rules](#safety-rules)
+[See it in action](#demo) · [Environment Setup](#environment-setup-for-beginners) · [Install](#install) · [Pain Points Solved](#pain-points-solved) · [What Gets Cleaned](#what-gets-cleaned) · [Safety Mechanisms](#safety-mechanisms) · [Safety Warning](#safety-warning)
+
+**Other Languages:** [中文](README.md)
 
 ---
 
@@ -22,14 +24,16 @@ Claude ❯  Scanning C drive...
       ┌──────────┬─────────────────────────┬────────┬──────┬──────────────────────────────┐
       │ Category │ Item                    │ Size   │ Risk │ Note                         │
       ├──────────┼─────────────────────────┼────────┼──────┼──────────────────────────────┤
-      │ Cleanable│ Windows Update cache    │ 4.2 GB │ Low  │ Installed update packages    │
-      │ Cleanable│ User temp files         │ 2.1 GB │ Low  │ App cache, auto-rebuilt      │
-      │ Cleanable│ Browser cache (Chrome)  │ 1.8 GB │ Low  │ Web cache, auto-rebuilt      │
-      │ Movable  │ Documents               │ 68.6GB │ Low  │ Can migrate via junction     │
-      │ Movable  │ xwechat_files (WeChat)  │ 31.0GB │ Med  │ May need re-indexing after   │
+      │ Cleanable│ Windows Update cache    │ 4.2 GB │ 🟢   │ Installed update packages    │
+      │ Cleanable│ User temp files         │ 2.1 GB │ 🟢   │ App cache, auto-rebuilt      │
+      │ Cleanable│ Browser cache (Chrome)  │ 1.8 GB │ 🟢   │ Web cache, auto-rebuilt      │
+      │ Cleanable│ WPS cache               │ 5.2 GB │ 🟡   │ May contain unsynced docs    │
+      │ Movable  │ Documents               │ 68.6GB │ 🟢   │ Can migrate via junction     │
+      │ Movable  │ xwechat_files (WeChat)  │ 31.0GB │ 🟡   │ May need re-indexing after   │
       └──────────┴─────────────────────────┴────────┴──────┴──────────────────────────────┘
 
       After selecting items, cleanup and migration run automatically.
+      Pre-cleanup safety checks passed. Copy integrity verification passed.
 
       C drive free space: 15.31 GB → 102.33 GB
 ```
@@ -160,58 +164,144 @@ Move my Documents folder to the E drive
 
 ---
 
-## How it works
+## Pain Points Solved
+
+| Pain Point | How This Skill Helps |
+|------------|---------------------|
+| **WeChat/DingTalk/Lark chat files filling up C drive** | Auto-discovers `xwechat_files` and other large directories, migrates via junction to another drive — apps are unaffected |
+| **Desktop/Documents cluttered with files** | Migrates Documents, Desktop, etc. to another drive; junction redirect keeps the original path working |
+| **C drive turns red but don't know what's taking space** | One-click scan, grouped by category, generates visual HTML report |
+| **No idea how much space was freed after cleanup** | Before/after comparison report showing exactly how much each operation freed |
+| **Browser/update caches accumulate several GB** | Auto-scans and cleans Chrome, Edge, Firefox multi-profile caches |
+| **Developer toolchains using too much space** | Discovers npm/pip/NuGet/Docker/WSL2/VS Code extension caches |
+| **Games filling up C drive** | Detects Steam/Epic/Xbox game libraries with platform-specific migration advice |
+| **Have other drives but don't know how to use them** | Detects available drive letters and free space, auto-recommends migration plans |
+| **Worried about breaking apps after cleanup** | Three-tier safety classification + 10 pre-checks + copy integrity verification + rename backup strategy |
+| **OneDrive/cloud sync folders** | Auto-detects OneDrive, Dropbox, Google Drive, Nutstore — avoids sync conflicts from migration |
+| **Corporate PC with folder redirection** | Auto-detects Group Policy redirection and marks as no-migration |
+| **Script failure leaves you stuck** | Every phase has fallback manual commands — you're never dependent on scripts |
+
+---
+
+## What Gets Cleaned
+
+### Temp Files & Caches (Direct Cleanup)
+
+| Item | Typical Size | Safety Tier |
+|------|-------------|-------------|
+| Windows Update cache | 1-10 GB | 🟢 Safe |
+| User temp files | 1-5 GB | 🟢 Safe |
+| Windows temp files | 0.5-2 GB | 🟢 Safe |
+| Browser cache (Chrome/Edge/Firefox multi-Profile) | 0.5-3 GB | 🟢 Safe |
+| Recycle Bin | Varies | 🟢 Safe |
+| Thumbnail cache | 0.1-1 GB | 🟢 Safe |
+| Windows logs | 0.1-1 GB | 🟢 Safe |
+| Delivery Optimization files | 0.1-2 GB | 🟢 Safe |
+| Prefetch cache | 0.1-0.5 GB | 🟢 Safe |
+| App crash dumps | 0-2 GB | 🟢 Safe |
+| WPS cache | 5-15 GB | 🟡 Caution |
+| Tencent/QQ data | 1-10 GB | 🟡 Caution |
+| DingTalk/Lark cache | 1-10 GB | 🟡 Caution |
+| Windows.old | 10-30 GB | 🟡 Caution |
+| Event logs | 0.1-1 GB | 🔴 Suggest Only |
+
+### Developer Tool Caches
+
+| Item | Typical Size | Safety Tier |
+|------|-------------|-------------|
+| npm / Yarn / pnpm cache | 1-10 GB | 🟢 Safe |
+| pip cache | 0.5-5 GB | 🟢 Safe |
+| NuGet package cache | 1-10 GB | 🟢 Safe |
+| Gradle / Maven cache | 1-10 GB | 🟢 Safe |
+| Docker Desktop data | 1-30 GB | 🟡 Caution |
+| WSL2 virtual disks | 1-30 GB | 🔴 Suggest Only |
+| VS Code / Cursor extensions | 1-5 GB | 🟡 Caution |
+
+### Game Platforms (Platform-Specific Migration Advice)
+
+| Platform | Typical Size | Handling |
+|----------|-------------|----------|
+| Steam library | 10-100 GB | Guide to use Steam client migration |
+| Epic Games | 5-50 GB | Guide to reinstall via Launcher |
+| Xbox Game Pass | 5-50 GB | Not supported for migration |
+
+### Folder Migration (via junction Redirect)
+
+| Folder | Typical Size | Safety Tier | junction Compatibility |
+|--------|-------------|-------------|----------------------|
+| Documents | 10-100 GB | 🟢 Safe | Fully compatible |
+| Desktop | 1-10 GB | 🟢 Safe | Fully compatible |
+| Downloads | 1-20 GB | 🟢 Safe | Fully compatible |
+| Pictures | 1-50 GB | 🟢 Safe | Fully compatible |
+| Videos | 1-50 GB | 🟢 Safe | Fully compatible |
+| xwechat_files (WeChat) | 10-50 GB | 🟡 Caution | Compatible, may need re-indexing |
+
+---
+
+## Safety Mechanisms
+
+### Three-Tier Safety Classification
+
+| Tier | Meaning | Handling |
+|------|---------|----------|
+| 🟢 Safe | Temp files/caches, auto-rebuilt | Explain to user, then proceed |
+| 🟡 Caution | Data may have value | Explain impact per item, get explicit confirmation |
+| 🔴 Danger | System-critical/irreversible | Never operate, only suggest system tools |
+
+### Migration Protection (6 Layers)
+
+1. **Cloud sync detection** — Auto-detects OneDrive/Dropbox/Google Drive/Nutstore, avoids sync conflicts
+2. **Enterprise redirect detection** — Detects Group Policy redirects, marks as no-migration
+3. **Existing junction detection** — Avoids duplicate migration
+4. **Disk encryption check** — BitLocker status comparison, alerts on encryption mismatch
+5. **File system check** — Target drive must be NTFS (FAT32 doesn't support junction)
+6. **Space check** — Target drive needs 110% free space
+
+### Migration Operation Safety
+
+- After copying, **verify file count and size** must match exactly
+- Original folder is **only renamed** to `_backup`, never deleted
+- After junction creation, test that apps can access files normally
+- **Office lock file detection** (`~$*.docx`), terminates migration if open documents found
+
+---
+
+## Safety Warning
+
+> ⚠️ **Cleaning your C drive carries risk.** Always carefully review each item before confirming cleanup or migration.
+>
+> **Before starting:**
+> - Save and close all files being edited (especially Word, Excel, PowerPoint)
+> - Close WeChat, WPS, browsers, and other programs that may lock files
+> - Consider creating a System Restore Point as an extra safeguard
+>
+> **During the process:**
+> - Review each confirmation table carefully — do not blindly approve everything
+> - Pay extra attention to 🟡 Caution-level items and their impact descriptions
+> - Be patient during large folder copy and verification — do not interrupt
+>
+> **After completion:**
+> - Open your commonly used programs to confirm they work normally
+> - Check that files on Desktop and Documents can be opened properly
+> - Only delete backup folders after confirming everything is fine
+
+---
+
+## How It Works
 
 **With another drive available** — Full workflow:
 
-1. **Scan** — Analyze C drive, find all cleanable items and movable folders
-2. **Clean** — Safely delete temp files, caches, and logs (after user confirmation)
-3. **Migrate** — Copy via robocopy + redirect with junction, transparent to apps
-4. **Verify** — Check junction validity, test that applications work normally
+1. **Scan** — Run PowerShell script for comprehensive C drive analysis (includes OneDrive/encryption/cloud sync detection)
+2. **Clean** — Safely delete temp files, caches, logs (after user confirmation)
+3. **Migrate** — robocopy copy + junction redirect, verify integrity before switching
+4. **Verify** — Check junction validity, test that applications work normally, generate comparison report
 
 **Only C drive available** — Cleanup-only workflow:
 
 1. **Scan** — Find all safely cleanable items
-2. **Display** — Show results in a table with risk levels, confirm each item
+2. **Display** — Show results in a table with safety tiers, confirm each item
 3. **Clean** — Only clean items the user approves
-4. **Suggest** — Provide further recommendations (Disk Cleanup tool, disable hibernation, etc.)
-
----
-
-## Cleanable Items
-
-| Item | Typical Size | Risk |
-|------|-------------|------|
-| Windows Update cache | 1-10 GB | Low |
-| User temp files | 1-5 GB | Low |
-| Windows temp files | 0.5-2 GB | Low |
-| Browser cache (Chrome/Edge) | 0.5-3 GB | Low |
-| Recycle Bin | Varies | Low |
-| Thumbnail cache | 0.1-1 GB | Low |
-| Windows logs | 0.1-1 GB | Low |
-| Delivery Optimization files | 0.1-2 GB | Low |
-| WPS cache | 5-15 GB | Medium |
-| Tencent/DingTalk/Lark cache | 1-10 GB | Medium |
-| Windows.old | 10-30 GB | Low |
-
-## Movable Folders
-
-| Folder | Typical Size | Risk |
-|--------|-------------|------|
-| Documents | 10-100 GB | Low |
-| Desktop | 1-10 GB | Low |
-| Downloads | 1-20 GB | Low |
-| Pictures / Videos / Music | 1-50 GB | Low |
-| xwechat_files (WeChat) | 10-50 GB | Medium |
-
----
-
-## Safety Rules
-
-- **Rename, never delete** — Original folders are kept as backups until junctions are verified
-- **Prefer junctions over symlinks** — Better compatibility, no admin privileges required
-- **Close apps before moving** — Avoids file locking issues
-- **Never touch system folders** — Windows, Program Files, etc. are out of scope
+4. **Suggest** — Provide further recommendations to free up space
 
 ---
 

@@ -18,133 +18,107 @@ compatibility: 仅适用于 Windows 10/11，需要管理员权限（部分操作
 
 ## 前置检查
 
-开始前需要确认：
-1. 当前系统是 Windows（本技能仅适用于 Windows）
-2. 用户具有管理员权限（部分清理操作需要）
-
-通过以下命令检测可用盘符：
+开始前确认：1. 当前系统是 Windows  2. 用户具有管理员权限（部分操作需要）
 
 ```powershell
 Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } | Select-Object Name, @{N='可用空间GB';E={[math]::Round($_.Free/1GB,2)}}
 ```
 
-根据检测结果分流：
-- **有其他盘且空间充足** → 执行「完整流程」（清理 + 移动文件夹）
-- **只有 C 盘** → 执行「仅清理流程」（只清理安全可删除项，不移动文件夹）
+分流：**有其他盘且空间充足** → 完整流程（清理 + 迁移）；**只有 C 盘** → 仅清理流程
 
-需要向用户确认：
-- Windows 用户名（或通过 `$env:USERNAME` 自动检测）
-- 如需移动文件夹：目标盘符和路径（如 `E:\filesfromDiskC`）
+确认：Windows 用户名（`$env:USERNAME`）+ 如需迁移：目标盘符和路径
+
+## 安全分级
+
+所有展示给用户的表格**必须**包含安全分级列。
+
+| 级别 | 含义 | Agent 行为 |
+|------|------|-----------|
+| 🟢 安全 | 临时文件/缓存，可自动重建 | 说明后可直接执行 |
+| 🟡 谨慎 | 数据可能有价值 | 逐项说明影响，获得明确确认 |
+| 🔴 危险 | 系统关键/不可逆 | 永不删除，仅建议系统工具处理 |
 
 ## 执行阶段
 
-### 第一阶段：全面扫描 C 盘可清理/可迁移项
+### 第一阶段：全面扫描
 
-目标：找出所有**不影响系统稳定性和程序运行**的可操作项，分为「可安全清理」和「可迁移到其他盘」两类。
+1. **脚本基准扫描**（优先）：
 
-1. **分析磁盘使用情况**
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Tee-Object -Variable scanResult; $scanResult | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
+```
 
-获取 C 盘的总使用量和可用空间，了解当前磁盘状态。
+> 脚本路径相对于技能安装目录，找不到时用绝对路径。额外路径用 `-ExtraPaths "path1,path2"` 传入。
 
-2. **扫描可清理项**
+2. **Agent 动态扩展**：根据用户描述探索脚本未覆盖的可疑目录。
 
-扫描 C 盘上的所有可安全清理项，包括临时文件、缓存、日志等。
+> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动扫描命令模板。
 
-3. **扫描可迁移到其他盘项**
+将结果以表格展示（类别/项目/路径/大小/分级/说明），询问用户要执行哪些操作。
 
-扫描 C 盘上的所有可迁移到其他盘的文件夹，包括用户文件夹、应用缓存等。
+### 第二阶段：清理临时文件
 
-4. **输出汇总**
+> 两种流程都执行。
 
-将扫描结果以表格展示给用户，按以下格式：
+向用户展示确认表（项目/路径/大小/分级/操作），确认后逐项清理。
 
-| 类别 | 项目 | 路径 | 大小 | 风险 | 说明 |
-|------|------|------|------|------|------|
-| 可清理 | 用户临时文件 | %TEMP% | 2.1 GB | 低 | 应用缓存，删除后自动重建 |
-| 可迁移 | Documents | C:\Users\用户名\Documents | 68.6 GB | 低 | 用户文件夹，可用junction迁移 |
-| ... | ... | ... | ... | ... | ... |
-
-询问用户要执行哪些操作。
-
-### 第二阶段：清理临时文件（安全操作，立即释放空间）
-
-> 本阶段在两种流程中都会执行。
-
-清理扫描出来的可安全清理项，包括但不限于用户临时文件、Windows 临时文件、Windows 更新缓存等。
+> **清理前安全检查**（文件锁、自动保存文件排除、下载文件排除）：参阅 `references/safety-rules.md`
 
 ### 第三阶段：使用 junction 移动大文件夹
 
-> **仅「完整流程」执行此阶段。** 如果用户只有 C 盘，跳过此阶段，进入「仅清理流程」。
+> **仅完整流程执行**。
 
-对每个需要移动的文件夹，按以下步骤操作：
+**迁移前必须通过 6 项前置检查**（云同步检测、重定向检测、已有 junction 检测、BitLocker 检查、NTFS 文件系统检查、空间检查）：
 
-1. **关闭正在运行中的相关程序**（微信、WPS 等）
-2. **复制文件**：复制到目标盘符路径（如 E:\filesfromDiskC）
-3. **验证复制** ： 检查文件数量和大小是否一致
-4. **重命名原文件夹**作为备份：
-   ```powershell
-   Rename-Item -Path "<源路径>" -NewName "<源路径>_backup"
-   ```
-5. **创建 junction**（junction 比符号链接兼容性更好，不需要管理员权限）：将原文件夹路径指向目标盘符路径
-   ```powershell
-   cmd /c mklink /J "<源路径>" "<目标盘>:<目标路径>"
-   ```
-6. **测试** — 打开相关程序，验证文件可以正常访问
-7. **确认无误后删除备份**
+> 详细前置检查和 10 步迁移操作命令：参阅 `references/migration-guide.md`
+> 安全规则细则（云同步/UWP/加密/游戏/开发者）：参阅 `references/safety-rules.md`
 
-### 第四阶段：清理应用缓存（谨慎操作）
+核心原则：**复制 → 验证完整性（数量+大小必须一致） → rename 备份 → 创建 junction → 测试 → 删备份**
 
-将应用缓存展示给用户确认，询问用户是否不需要缓存数据后再执行：
+### 第四阶段：清理应用缓存
 
-比如：
-- WPS 缓存：`AppData\Local\kingsoft`
-- 腾讯缓存：`AppData\Roaming\Tencent`
-- 谷歌浏览器缓存：`AppData\Local\Google\Chrome\User Data\Default\Cache`
-
-如果用户不能确认，可以选择不清理。
+将应用缓存展示给用户确认（应用/路径/大小/分级/影响），不能确认则不清理。
 
 ### 第五阶段：验证并报告
 
-1. 检查所有 junction 是否有效
-2. 测试应用程序是否正常运行
-3. 汇报总共释放的空间
+1. 验证 junction：`powershell -ExecutionPolicy Bypass -File scripts/verify.ps1`
+2. 生成结果报告：
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File scripts/build_report.ps1 -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
+```
+
+> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动验证命令。
+
+在对话中展示操作汇总表（操作/项目/释放空间/分级/状态）。
 
 ## 仅清理流程（只有 C 盘时）
 
-当用户没有其他盘可用时，跳过文件夹移动，专注于安全清理。
+1. 扫描可清理项（脚本或 `references/fallback-commands.md` 手动扫描）
+2. 表格展示，用户逐项确认
+3. 逐项执行清理
+4. 汇报释放空间
+5. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
 
-1. 执行第一阶段的扫描，筛选出「类别=可清理」的项目
-2. **将所有可清理项汇总成表格展示给用户，由用户逐项确认后再执行清理**
-3. 逐项执行对应的清理命令（同第二阶段）
-4. 汇报总共释放的空间
-5. 清理完成后给出补充建议：
+## 核心安全规则
 
-### 补充建议
-
-清理完成后，如果空间仍然紧张，给出额外建议：
-- 使用 Windows 自带的「磁盘清理」工具（`cleanmgr`）清理系统文件
-- 检查是否有大型软件可以卸载重装到其他盘
-- 检查休眠文件（`hiberfil.sys`）和页面文件（`pagefile.sys`）占用，如不需要可关闭休眠释放数 GB 空间：
-  ```powershell
-  powercfg /h off
-  ```
-
-## 重要安全规则
-
-- **只重命名，不删除** — 在 junction 验证通过前，绝不删除原文件夹
-- **优先使用 junction（`mklink /J`）** 而非符号链接 — junction 无需管理员权限且兼容性更广
-- **移动前关闭相关程序**
-- **微信注意事项**：微信的聊天数据库移动后可能需要重新索引
+- **只重命名，不删除** — junction 验证通过前绝不删原文件夹
+- **用 junction（`mklink /J`）** 而非符号链接 — 无需管理员权限
+- **移动前关闭程序 + 检查文件锁**
 - **绝不移动系统文件夹**（Windows、Program Files 等）
-- 如用户需要额外保障，**操作前创建系统还原点**
+- **云同步文件夹不建议 junction 迁移**
+- 建议用户**操作前创建系统还原点**
 
-## 常见可移动文件夹
+> 详细安全规则和各场景处理方式：参阅 `references/safety-rules.md`
 
-| 文件夹 | 典型大小 | 风险等级 |
-|--------|---------|---------|
-| Documents（文档） | 10-100 GB | 低 |
-| Desktop（桌面） | 1-10 GB | 低 |
-| Downloads（下载） | 1-20 GB | 低 |
-| xwechat_files（微信） | 10-50 GB | 中 |
-| AppData\Local\Temp | 1-5 GB | 低 |
-| AppData\Local\kingsoft（WPS） | 5-15 GB | 中 |
+## 脚本参考
+
+| 脚本 | 用途 | 关键参数 |
+|------|------|---------|
+| `scan.ps1` | 基准扫描，输出 JSON（含 OneDrive/加密检测） | `-MinSizeMB 50` `-ExtraPaths "p1,p2"` |
+| `verify.ps1` | 验证 junction 完整性 | 无 |
+| `build_report.ps1` | 生成 HTML 报告 | `-Mode report` 或 `-Mode result -BeforeFile <before.json>` |
+
+scan.ps1 输出分组：`temp` / `browser_cache` / `app_cache` / `dev_cache` / `user_folders` / `game_library` / `system_logs` / `other` / `extra`
+
+> 典型使用流程（完整命令序列）：参阅 `references/migration-guide.md`
