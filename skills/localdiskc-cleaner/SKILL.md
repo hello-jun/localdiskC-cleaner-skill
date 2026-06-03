@@ -28,6 +28,34 @@ Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } | Select-O
 
 确认：Windows 用户名（`$env:USERNAME`）+ 如需迁移：目标盘符和路径
 
+## 脚本路径定位
+
+在进入执行阶段之前，先定位脚本目录的绝对路径。运行以下命令：
+
+```powershell
+$found = $null
+$d = $PWD.Path
+while ($d -and -not $found) {
+    $t = Join-Path $d "scripts\scan.ps1"
+    if (Test-Path $t) { $found = Join-Path $d "scripts" }
+    $d = Split-Path $d -Parent
+}
+if (-not $found) {
+    foreach ($r in @("$env:USERPROFILE\.claude","$env:USERPROFILE\.opencode","$env:USERPROFILE\AI","$env:USERPROFILE")) {
+        if ($found) { break }
+        if (-not (Test-Path $r)) { continue }
+        $f = Get-ChildItem $r -Recurse -Depth 5 -Filter scan.ps1 -File -EA SilentlyContinue |
+             Where-Object { $_.FullName -match 'localdiskc-cleaner' } | Select-Object -First 1
+        if ($f) { $found = Split-Path $f.FullName }
+    }
+}
+if ($found) { Write-Host "CLEANER_SCRIPT_DIR=$found" } else { Write-Host "CLEANER_SCRIPT_DIR=NOT_FOUND" }
+```
+
+将输出中 `CLEANER_SCRIPT_DIR=` 后的路径记为 **脚本目录**，后续所有命令中用该绝对路径替代 `scripts/`。
+
+> 若输出 `NOT_FOUND`，进入手动扫描模式（仍可生成 HTML 报告，参阅 `references/fallback-commands.md`）。
+
 ## 安全分级
 
 所有展示给用户的表格**必须**包含安全分级列。
@@ -45,14 +73,22 @@ Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } | Select-O
 1. **脚本基准扫描**（优先）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Tee-Object -Variable scanResult; $scanResult | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Tee-Object -Variable scanResult; $scanResult | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
 ```
 
-> 脚本路径相对于技能安装目录，找不到时用绝对路径。额外路径用 `-ExtraPaths "path1,path2"` 传入。
+> `<脚本目录>` 替换为路径定位步骤获取的绝对路径。额外路径用 `-ExtraPaths "path1,path2"` 传入。
 
 2. **Agent 动态扩展**：根据用户描述探索脚本未覆盖的可疑目录。
 
-> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动扫描命令模板。
+> **脚本失败时**：参阅 `references/fallback-commands.md` 中的「一键手动扫描 + JSON 构建」，将 JSON 保存到 `$env:TEMP\c-drive-scan-before.json`，后续仍可生成 HTML 报告。
+
+3. **生成分析报告**（可选）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
+```
+
+> 报告自动生成到桌面并在浏览器中打开。若脚本也不可用，使用 `references/fallback-commands.md` 中的「内联 HTML 报告生成」。
 
 将结果以表格展示（类别/项目/路径/大小/分级/说明），询问用户要执行哪些操作。
 
@@ -81,24 +117,26 @@ powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Tee-Object -Variable
 
 ### 第五阶段：验证并报告
 
-1. 验证 junction：`powershell -ExecutionPolicy Bypass -File scripts/verify.ps1`
+1. 验证 junction：`powershell -ExecutionPolicy Bypass -File "<脚本目录>\verify.ps1"`
 2. 生成结果报告：
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
-powershell -ExecutionPolicy Bypass -File scripts/build_report.ps1 -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
 ```
 
-> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动验证命令。
+> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动验证命令和内联报告生成。
 
 在对话中展示操作汇总表（操作/项目/释放空间/分级/状态）。
 
 ## 仅清理流程（只有 C 盘时）
 
-1. 扫描可清理项（脚本或 `references/fallback-commands.md` 手动扫描）
-2. 表格展示，用户逐项确认
-3. 逐项执行清理
-4. 汇报释放空间
-5. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
+1. 执行「脚本路径定位」，记录脚本目录路径
+2. 扫描可清理项（`<脚本目录>\scan.ps1` 或 `references/fallback-commands.md` 手动扫描 + JSON 构建）
+3. 表格展示，用户逐项确认
+4. 逐项执行清理
+5. 重新扫描并生成 HTML 报告（`<脚本目录>\build_report.ps1` 或内联 HTML 生成）
+6. 汇报释放空间
+7. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
 
 ## 核心安全规则
 

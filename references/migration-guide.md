@@ -138,24 +138,23 @@ cmd /c mklink /J "<源路径>" "<目标盘>:<目标路径>"
 
 ## 典型使用流程
 
-```powershell
-# 脚本路径说明：以下使用相对路径，实际运行时请替换为绝对路径
-# 例如: $scriptPath = "$env:USERPROFILE\.skills\localdiskc-cleaner\scripts"
+> 以下命令中的 `<脚本目录>` 需替换为 SKILL.md「脚本路径定位」步骤获取的绝对路径。
 
+```powershell
 # 1. 扫描并保存结果
-powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
 
 # 2. 生成分析报告（可选）
-powershell -ExecutionPolicy Bypass -File scripts/build_report.ps1 -InputFile "$env:TEMP\c-drive-scan-before.json"
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
 
 # 3. ... 执行清理和迁移操作 ...
 
 # 4. 清理后再次扫描
-powershell -ExecutionPolicy Bypass -File scripts/scan.ps1 | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
 
 # 5. 验证 junction
-powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\verify.ps1"
 
 # 6. 生成结果报告（对比前后差异）
-powershell -ExecutionPolicy Bypass -File scripts/build_report.ps1 -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
 ```
