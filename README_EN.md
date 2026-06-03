@@ -8,7 +8,7 @@
 
 A skill for cleaning and reclaiming Windows C drive space, based on the [Agent Skills protocol](https://agentskills.io). Works across 40+ compatible runtimes including Claude Code, Codex, Cursor, Gemini CLI, VS Code, GitHub Copilot, Roo Code, OpenCode, and more.
 
-[See it in action](#demo) · [Environment Setup](#environment-setup-for-beginners) · [Install](#install) · [Pain Points Solved](#pain-points-solved) · [What Gets Cleaned](#what-gets-cleaned) · [Safety Mechanisms](#safety-mechanisms) · [Safety Warning](#safety-warning)
+[See it in action](#demo) · [Install](#install) · [Environment Setup](#environment-setup-for-beginners-click-to-expand) · [Pain Points Solved](#pain-points-solved) · [What Gets Cleaned](#what-gets-cleaned) · [Safety Mechanisms](#safety-mechanisms) · [Safety Warning](#safety-warning)
 
 **Other Languages:** [中文](README.md)
 
@@ -40,7 +40,8 @@ Claude ❯  Scanning C drive...
 
 ---
 
-## Environment Setup (For Beginners)
+<details>
+<summary><strong>🧑‍💻 Environment Setup (For Beginners, click to expand)</strong></summary>
 
 If you're not a programmer or haven't used AI coding tools before, please complete these setup steps first.
 
@@ -99,6 +100,8 @@ AI assistants need to connect to a large language model to work. You'll need to 
 **Configure API KEY in OpenCode:**
 
 Please refer to the official tutorial: [OpenCode DeepSeek API Key Configuration](https://learnopencode.com/1-start/04b-deepseek.html)
+
+</details>
 
 ---
 

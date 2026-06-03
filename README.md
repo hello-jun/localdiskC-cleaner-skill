@@ -8,7 +8,7 @@
 
 一个清理本地磁盘 C 盘空间的工具技能，基于 [Agent Skills 协议](https://agentskills.io)，在 Claude Code、Codex、Cursor、Gemini CLI、VS Code、GitHub Copilot、Roo Code、OpenCode 等 40+ 兼容 runtime 中通用。
 
-[看效果](#效果示例) · [环境准备](#环境准备小白用户必读) · [安装](#安装) · [解决哪些痛点](#解决哪些痛点) · [能清理什么](#能清理什么) · [安全机制](#安全机制) · [安全提示](#安全提示)
+[看效果](#效果示例) · [安装](#安装) · [环境准备](#环境准备小白用户必读点击展开) · [解决哪些痛点](#解决哪些痛点) · [能清理什么](#能清理什么) · [安全机制](#安全机制) · [安全提示](#安全提示)
 
 **Other Languages:** [English](README_EN.md)
 
@@ -40,7 +40,8 @@ Claude ❯  正在扫描 C 盘...
 
 ---
 
-## 环境准备（小白用户必读）
+<details>
+<summary><strong>🧑‍💻 环境准备（小白用户必读，点击展开）</strong></summary>
 
 如果你不是程序员，或者没有使用过 AI 编程工具，请先完成以下准备工作。
 
@@ -52,7 +53,7 @@ Node.js 是运行 JavaScript 的环境，安装后可以使用 `npx` 命令。
 
 1. 访问 [Node.js 官网](https://nodejs.org/zh-cn/)
 2. 下载 **LTS（长期支持版）**（小白用户推荐使用 Windows 安装程序.msi, [下载链接](https://nodejs.org/dist/v24.16.0/node-v24.16.0-x64.msi)）
-3. 双击安装包，一路点击“下一步”即可
+3. 双击安装包，一路点击”下一步”即可
 4. 安装完成后，打开终端（同时按下 Windows 键+Q 键 搜索 `终端`），输入以下命令验证：
 
 ```bash
@@ -99,6 +100,8 @@ AI 助手需要连接大语言模型才能工作。你需要获取一个 API KEY
 **在 OpenCode 中配置 API KEY：**
 
 请参照教程：[OpenCode 配置 DeepSeek API Key](https://learnopencode.com/1-start/04b-deepseek.html)
+
+</details>
 
 ---
 
