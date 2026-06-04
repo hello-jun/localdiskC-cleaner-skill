@@ -52,16 +52,25 @@ function Html-Encode {
 if ($InputFile -ne "" -and (Test-Path $InputFile)) {
     $scanJson = Read-ScanJson -Path $InputFile
 }
-elseif ([Console]::IsInputRedirected) {
-    $scanJson = @([System.Console]::In.ReadToEnd())
-}
 else {
-    $defaultPath = Join-Path $env:TEMP "c-drive-scan.json"
-    if (Test-Path $defaultPath) {
-        $scanJson = Get-Content -Path $defaultPath -Raw -Encoding UTF8
-    } else {
+    $fallbackPaths = @(
+        (Join-Path $env:TEMP "c-drive-scan-before.json"),
+        (Join-Path $env:TEMP "c-drive-scan.json")
+    )
+    $found = $fallbackPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($found) {
+        $scanJson = Get-Content -Path $found -Raw -Encoding UTF8
+    }
+    elseif (-not [Console]::IsInputRedirected) {
         Write-Error "未找到扫描数据。请通过 -InputFile 指定 JSON 文件或通过管道传入。"
         exit 1
+    }
+    else {
+        $scanJson = @([System.Console]::In.ReadToEnd())
+        if (-not $scanJson -or $scanJson.Trim() -eq "") {
+            Write-Error "未找到扫描数据。请通过 -InputFile 指定 JSON 文件或通过管道传入。"
+            exit 1
+        }
     }
 }
 
@@ -74,6 +83,9 @@ if (-not $scan -or -not $scan.system) {
 $beforeJson = ""
 $before = $null
 if ($Mode -eq "result") {
+    if ($BeforeFile -eq "" -or -not (Test-Path $BeforeFile)) {
+        $BeforeFile = Join-Path $env:TEMP "c-drive-scan-before.json"
+    }
     $beforeJson = Read-ScanJson -Path $BeforeFile
     $before = $beforeJson | ConvertFrom-Json
     if (-not $before -or -not $before.system) {

@@ -88,9 +88,9 @@ if ($found) { Write-Host "CLEANER_SCRIPT_DIR=$found" } else { Write-Host "CLEANE
 
 | 脚本 | 用途 | 关键参数 |
 |------|------|---------|
-| `scan.ps1` | 基准扫描，输出 JSON（含 OneDrive/加密检测） | `-MinSizeMB 50` `-ExtraPaths "p1,p2"` |
+| `scan.ps1` | 基准扫描，输出 JSON（含 OneDrive/加密检测） | **`-OutputFile <path>`（必填）** `-MinSizeMB 50` `-ExtraPaths "p1,p2"` |
 | `verify.ps1` | 验证 junction 完整性 | 无 |
-| `build_report.ps1` | 生成 HTML 报告 | `-Mode report` 或 `-Mode result -BeforeFile <before.json>` |
+| `build_report.ps1` | 生成 HTML 报告 | `-Mode report`（默认，自动查找扫描数据）或 `-Mode result`（清理前后对比） |
 
 scan.ps1 输出分组：`temp` / `browser_cache` / `app_cache` / `dev_cache` / `user_folders` / `game_library` / `system_logs` / `other` / `extra`
 

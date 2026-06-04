@@ -47,11 +47,15 @@ Get-ChildItem $env:USERPROFILE -Directory -Filter "*wechat*" | ForEach-Object { 
 
 ## 一键手动扫描 + JSON 构建
 
-当 `scan.ps1` 不可用时，执行以下脚本完成扫描并输出 JSON（格式与 `scan.ps1` 完全兼容，可直接用于 `build_report.ps1`）。
+当 `scan.ps1` 不可用时，执行以下脚本完成扫描并保存 JSON（格式与 `scan.ps1` 完全兼容，可直接用于 `build_report.ps1`）。
 
-将输出保存到 `$env:TEMP\c-drive-scan-before.json`（或 `-after`），后续即可正常调用 `build_report.ps1` 生成 HTML 报告。
+脚本会自动将 JSON 保存到 `$env:TEMP\c-drive-scan-before.json`，后续即可正常调用 `build_report.ps1` 生成 HTML 报告。
+
+如需清理后再次扫描，将脚本中的 `$OutputFile` 改为 `$env:TEMP\c-drive-scan-after.json`。
 
 ```powershell
+$OutputFile = "$env:TEMP\c-drive-scan-before.json"
+
 function Get-SizeMB($p) {
     if (Test-Path $p) {
         $s = (Get-ChildItem $p -Recurse -File -Force -EA SilentlyContinue | Measure-Object Length -Sum).Sum
@@ -138,7 +142,10 @@ $result = [ordered]@{
     scan_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss')
 }
 
-$result | ConvertTo-Json -Depth 5
+$json = $result | ConvertTo-Json -Depth 5
+$json | Out-File $OutputFile -Encoding UTF8 -Force
+Write-Host "扫描数据已保存: $OutputFile" -ForegroundColor Green
+$json
 ```
 
 ### 执行方式
@@ -148,14 +155,14 @@ $result | ConvertTo-Json -Depth 5
 
 **步骤 1**：将上方 ```powershell ... ``` 中的完整脚本保存到 `$env:TEMP\manual_scan.ps1`。
 
-**步骤 2**：执行并保存 JSON：
+**步骤 2**：执行脚本（JSON 会自动保存到文件，无需管道）：
 
 ```powershell
-# 扫描前
-powershell -ExecutionPolicy Bypass -File "$env:TEMP\manual_scan.ps1" | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
+# 扫描前（默认保存到 c-drive-scan-before.json）
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\manual_scan.ps1"
 
-# 清理后再次扫描（保存为不同文件名）
-powershell -ExecutionPolicy Bypass -File "$env:TEMP\manual_scan.ps1" | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
+# 清理后（需将脚本中 $OutputFile 改为 c-drive-scan-after.json 后重新执行）
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\manual_scan.ps1"
 ```
 
 ### JSON 就绪后生成 HTML 报告
@@ -165,11 +172,11 @@ powershell -ExecutionPolicy Bypass -File "$env:TEMP\manual_scan.ps1" | Out-File 
 **情况 A — 脚本目录已定位**（路径定位返回了路径，但 `scan.ps1` 因其他原因失败）：直接用 `build_report.ps1` 生成 HTML。
 
 ```powershell
-# 分析报告
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
+# 分析报告（自动查找 c-drive-scan-before.json）
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1"
 
-# 结果报告（清理后）
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
+# 结果报告（清理前后对比，需先执行清理后的扫描）
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -InputFile "$env:TEMP\c-drive-scan-after.json"
 ```
 
 **情况 B — 脚本目录未定位**（路径定位返回 `NOT_FOUND`）：使用下方的「内联 HTML 报告生成」脚本，同样需保存为临时文件后用 `-File` 执行。

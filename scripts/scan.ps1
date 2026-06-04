@@ -12,16 +12,20 @@
     是否扫描可迁移到其他盘的用户文件夹。默认 $true
 .PARAMETER ExtraPaths
     agent 传入的额外路径（逗号分隔），会统一计算大小并纳入结果
+.PARAMETER OutputFile
+    必填。JSON 输出文件的绝对路径。推荐清理前用 c-drive-scan-before.json，清理后用 c-drive-scan-after.json
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File scan.ps1
-    powershell -ExecutionPolicy Bypass -File scan.ps1 -MinSizeMB 100 -ExtraPaths "C:\SomeApp\Data,C:\Another\Path"
+    powershell -ExecutionPolicy Bypass -File scan.ps1 -OutputFile "$env:TEMP\c-drive-scan-before.json"
+    powershell -ExecutionPolicy Bypass -File scan.ps1 -MinSizeMB 100 -ExtraPaths "C:\SomeApp\Data,C:\Another\Path" -OutputFile "$env:TEMP\c-drive-scan-before.json"
 #>
 
 [CmdletBinding()]
 param(
     [double]$MinSizeMB = 50,
     [bool]$ScanMovable = $true,
-    [string[]]$ExtraPaths = @()
+    [string[]]$ExtraPaths = @(),
+    [Parameter(Mandatory = $true)]
+    [string]$OutputFile
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -580,4 +584,8 @@ if ($odNote -or $encNote) {
 }
 
 $json = $output | ConvertTo-Json -Depth 5
+
+$json | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
+Write-Host "扫描数据已保存: $OutputFile" -ForegroundColor Green
+
 $json

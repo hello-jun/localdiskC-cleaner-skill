@@ -18,7 +18,7 @@
 1. **脚本基准扫描**（优先）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Tee-Object -Variable scanResult; $scanResult | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" -OutputFile "$env:TEMP\c-drive-scan-before.json"
 ```
 
 > `<脚本目录>` 替换为 SKILL.md 路径定位步骤获取的绝对路径。额外路径用 `-ExtraPaths "path1,path2"` 传入。
@@ -34,7 +34,7 @@ powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Tee-Object 
 ### 步骤 2a：生成 HTML 分析报告并自动打开
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
+powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1"
 ```
 
 > 报告会自动生成到桌面并在浏览器中打开。若脚本不可用，使用 `fallback-commands.md` 中的「内联 HTML 报告生成」。
@@ -114,8 +114,8 @@ $allItems | Sort-Object 大小GB -Descending | Format-Table -AutoSize
 
 2. 重新扫描并生成结果报告：
    ```powershell
-   powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
-   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
+   powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" -OutputFile "$env:TEMP\c-drive-scan-after.json"
+   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -InputFile "$env:TEMP\c-drive-scan-after.json"
    ```
 
 > **脚本失败时**：参阅 `fallback-commands.md` 获取手动验证命令和内联报告生成。
