@@ -267,7 +267,7 @@ if ($Mode -eq "report") {
 
     $groupSections
 
-    <div class="footer">由 localdiskC-cleaner-skill 扫描脚本生成 · 数据仅供参考，操作前请确认</div>
+    <div class="footer">由 localdiskc-cleaner-skill 扫描脚本生成 · 数据仅供参考，操作前请确认</div>
 </div>
 <script>const SCAN_DATA = $reportData;</script>
 </body>
@@ -455,7 +455,7 @@ if ($Mode -eq "result") {
         </div>
     </div>
 
-    <div class="footer">由 localdiskC-cleaner-skill 生成 · 对比清理前后扫描数据</div>
+    <div class="footer">由 localdiskc-cleaner-skill 生成 · 对比清理前后扫描数据</div>
 </div>
 <script>
 const BEFORE_DATA = $beforeData;

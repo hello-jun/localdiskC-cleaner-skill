@@ -110,12 +110,12 @@ Please refer to the official tutorial: [OpenCode DeepSeek API Key Configuration]
 ### One-liner (recommended, cross-runtime)
 
 ```bash
-npx skills add hello-jun/localdiskC-cleaner-skill --yes
+npx skills add hello-jun/localdiskc-cleaner-skill --yes
 ```
 
 Auto-detects your current runtime (Claude Code, Codex, Cursor, Gemini CLI, etc.) and installs to the correct path. Or just tell your AI assistant:
 
-> "Install this skill for me: https://github.com/hello-jun/localdiskC-cleaner-skill"
+> "Install this skill for me: https://github.com/hello-jun/localdiskc-cleaner-skill"
 
 ### Manual install
 
@@ -127,7 +127,7 @@ Auto-detects your current runtime (Claude Code, Codex, Cursor, Gemini CLI, etc.)
 Paste the contents of `SKILL.md` directly into a conversation, or clone locally:
 
 ```bash
-git clone https://github.com/hello-jun/localdiskC-cleaner-skill
+git clone https://github.com/hello-jun/localdiskc-cleaner-skill
 ```
 
 **Other runtimes (Codex, Cursor, Gemini CLI, etc.)**
@@ -140,7 +140,7 @@ git clone https://github.com/hello-jun/localdiskC-cleaner-skill
 | Other | Clone into the runtime's `skills/` directory |
 
 ```bash
-git clone https://github.com/hello-jun/localdiskC-cleaner-skill <path-above>
+git clone https://github.com/hello-jun/localdiskc-cleaner-skill <path-above>
 ```
 
 You can also paste the contents of `SKILL.md` directly into any agent conversation.

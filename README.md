@@ -110,12 +110,12 @@ AI 助手需要连接大语言模型才能工作。你需要获取一个 API KEY
 ### 方式一：一行命令（推荐，跨 runtime）
 
 ```bash
-npx skills add hello-jun/localdiskC-cleaner-skill --yes
+npx skills add hello-jun/localdiskc-cleaner-skill --yes
 ```
 
 自动检测当前 runtime（Claude Code、Codex、Cursor、Gemini CLI 等 40+ 兼容工具），安装到正确路径。也可以直接告诉你的 AI 助手：
 
-> "帮我安装这个 skill：https://github.com/hello-jun/localdiskC-cleaner-skill"
+> "帮我安装这个 skill：https://github.com/hello-jun/localdiskc-cleaner-skill"
 
 ### 方式二：手动安装
 
@@ -127,7 +127,7 @@ npx skills add hello-jun/localdiskC-cleaner-skill --yes
 把 `SKILL.md` 的内容直接粘贴进对话即可，或 clone 到本地后引用：
 
 ```bash
-git clone https://github.com/hello-jun/localdiskC-cleaner-skill
+git clone https://github.com/hello-jun/localdiskc-cleaner-skill
 ```
 
 **其他 runtime（Codex、Cursor、Gemini CLI 等）**
@@ -140,7 +140,7 @@ git clone https://github.com/hello-jun/localdiskC-cleaner-skill
 | 其他 runtime | clone 到对应 runtime 的 `skills/` 目录 |
 
 ```bash
-git clone https://github.com/hello-jun/localdiskC-cleaner-skill <上面对应的路径>
+git clone https://github.com/hello-jun/localdiskc-cleaner-skill <上面对应的路径>
 ```
 
 也可以把 `SKILL.md` 的内容直接粘贴进对话，所有 runtime 都支持。

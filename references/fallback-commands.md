@@ -227,7 +227,7 @@ h3{margin:20px 0 8px;font-size:16px;color:#e2e8f0}
 <div class="card"><div class="label">C 盘可用</div><div class="value blue">$cFree GB</div></div>
 </div>
 $rows
-<p style="text-align:center;color:#475569;font-size:12px;margin-top:32px">由 localdiskC-cleaner-skill 生成 · 数据仅供参考</p>
+<p style="text-align:center;color:#475569;font-size:12px;margin-top:32px">由 localdiskc-cleaner-skill 生成 · 数据仅供参考</p>
 </body></html>
 "@
 $outPath = Join-Path $env:USERPROFILE "Desktop\C盘扫描报告.html"
@@ -288,7 +288,7 @@ td{padding:8px 10px;border-bottom:1px solid #1e293b}tr:hover{background:#334155}
 <h3>操作明细</h3>
 <table><tr><th>路径</th><th>清理前</th><th>清理后</th><th>释放</th><th>分级</th><th>操作</th><th>状态</th></tr>
 $rows</table>
-<p style="text-align:center;color:#475569;font-size:12px;margin-top:32px">由 localdiskC-cleaner-skill 生成 · 对比清理前后扫描数据</p>
+<p style="text-align:center;color:#475569;font-size:12px;margin-top:32px">由 localdiskc-cleaner-skill 生成 · 对比清理前后扫描数据</p>
 </body></html>
 "@
 $outPath = Join-Path $env:USERPROFILE "Desktop\C盘清理结果报告.html"
