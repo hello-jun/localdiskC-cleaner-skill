@@ -48,7 +48,7 @@ while ($d -and -not $found) {
     $d = Split-Path $d -Parent
 }
 if (-not $found) {
-    foreach ($r in @("$env:USERPROFILE\.claude","$env:USERPROFILE\.opencode","$env:USERPROFILE\AI","$env:USERPROFILE")) {
+    foreach ($r in @("$env:USERPROFILE\.agents\skills","$env:USERPROFILE\.claude","$env:USERPROFILE\.opencode","$env:USERPROFILE")) {
         if ($found) { break }
         if (-not (Test-Path $r)) { continue }
         $f = Get-ChildItem $r -Recurse -Depth 5 -Filter scan.ps1 -File -EA SilentlyContinue |
