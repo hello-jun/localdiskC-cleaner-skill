@@ -182,7 +182,7 @@ if ($Mode -eq "report") {
     function Build-TableRows {
         param($Items)
         $rows = ""
-        foreach ($item in $Items) {
+        foreach ($item in ($Items | Sort-Object -Property size_mb -Descending)) {
             $tier = $tierMap[$item.tier]
             $tierLabel = if ($tier) { $tier.label } else { "⚪ 未知" }
             $tierColor = if ($tier) { $tier.color } else { "#94a3b8" }
@@ -202,7 +202,10 @@ if ($Mode -eq "report") {
     }
 
     $groupSections = ""
-    foreach ($groupName in $scan.groups.PSObject.Properties.Name) {
+    $sortedGroupNames = $scan.groups.PSObject.Properties.Name | Sort-Object {
+        ($scan.groups.$_ | Measure-Object -Property size_mb -Sum).Sum
+    } -Descending
+    foreach ($groupName in $sortedGroupNames) {
         $group = $scan.groups.$groupName
         if ($group.Count -eq 0) { continue }
         $groupTitle = if ($groupNames[$groupName]) { $groupNames[$groupName] } else { $groupName }
