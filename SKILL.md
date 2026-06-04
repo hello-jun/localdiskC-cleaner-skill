@@ -24,7 +24,14 @@ compatibility: 仅适用于 Windows 10/11，需要管理员权限（部分操作
 Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -ne 'C' } | Select-Object Name, @{N='可用空间GB';E={[math]::Round($_.Free/1GB,2)}}
 ```
 
-分流：**有其他盘且空间充足** → 完整流程（清理 + 迁移）；**只有 C 盘** → 仅清理流程
+### 分流决策
+
+| 条件 | 流程 | 参阅 |
+|------|------|------|
+| 有其他盘且空间充足 | 完整流程（清理 + 迁移） | `references/flow-full.md` |
+| 只有 C 盘 | 仅清理流程 | `references/flow-common.md` |
+
+两种流程共享的操作步骤在 `references/flow-common.md` 中，完整流程额外包含迁移阶段。
 
 确认：Windows 用户名（`$env:USERNAME`）+ 如需迁移：目标盘符和路径
 
@@ -66,156 +73,6 @@ if ($found) { Write-Host "CLEANER_SCRIPT_DIR=$found" } else { Write-Host "CLEANE
 | 🟡 谨慎 | 数据可能有价值 | 逐项说明影响，获得明确确认 |
 | 🔴 危险 | 系统关键/不可逆 | 永不删除，仅建议系统工具处理 |
 
-## 执行阶段
-
-### 第一阶段：全面扫描
-
-1. **脚本基准扫描**（优先）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Tee-Object -Variable scanResult; $scanResult | Out-File "$env:TEMP\c-drive-scan-before.json" -Encoding UTF8
-```
-
-> `<脚本目录>` 替换为路径定位步骤获取的绝对路径。额外路径用 `-ExtraPaths "path1,path2"` 传入。
-
-2. **Agent 动态扩展**：根据用户描述探索脚本未覆盖的可疑目录。
-
-> **脚本失败时**：参阅 `references/fallback-commands.md` 中的「一键手动扫描 + JSON 构建」，将 JSON 保存到 `$env:TEMP\c-drive-scan-before.json`，后续仍可生成 HTML 报告。
-
-3. **生成分析报告并展示结果**：
-
-   扫描完成后，必须立即执行以下操作：
-
-   **步骤 1：生成HTML分析报告并自动打开**
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
-   ```
-
-   > 报告会自动生成到桌面并在浏览器中打开。若脚本不可可用，使用 `references/fallback-commands.md` 中的「内联 HTML 报告生成」。
-
-   **步骤 2：在终端中展示可清理和可迁移列表**
-
-   解析扫描结果，在终端中以表格形式展示所有可清理和可迁移项目：
-
-   ```powershell
-   # 读取扫描结果
-   $scanData = Get-Content "$env:TEMP\c-drive-scan-before.json" -Raw -Encoding UTF8 | ConvertFrom-Json
-
-   # 遍历所有分组，提取可清理和可迁移项
-   $allItems = @()
-   foreach ($groupName in $scanData.groups.PSObject.Properties.Name) {
-       $group = $scanData.groups.$groupName
-       foreach ($item in $group) {
-           $allItems += [ordered]@{
-               类别 = $groupName
-               项目 = Split-Path $item.path -Leaf
-               路径 = $item.path
-               大小GB = [math]::Round($item.size_mb / 1024, 2)
-               分级 = switch ($item.tier) {
-                   "green" { "🟢 安全" }
-                   "yellow" { "🟡 谨慎" }
-                   "red" { "🔴 危险" }
-               }
-               类型 = if ($item.movable) { "可迁移" } else { "可清理" }
-               说明 = $item.note
-           }
-       }
-   }
-
-   # 按大小排序并展示
-   $allItems | Sort-Object 大小GB -Descending | Format-Table -AutoSize
-   ```
-
-   **表格格式要求**：
-   - 必须包含列：类别、项目、路径、大小(GB)、分级、类型、说明
-   - 按大小从大到小排序
-   - 使用安全分级符号：🟢安全、🟡谨慎、🔴危险
-   - 类型列显示"可清理"或"可迁移"
-
-   **步骤 3：询问用户操作**
-
-   展示列表后，询问用户要执行哪些操作：
-   "以上是扫描发现的可清理和可迁移项目（HTML报告已自动打开）。请告诉我您想要执行哪些操作：
-   1. 清理所有🟢安全项目
-   2. 清理特定类别（如临时文件、浏览器缓存等）
-   3. 迁移特定文件夹到其他盘
-   4. 查看详细说明后再决定
-   请输入您的选择（如：1、2+临时文件、3+文档文件夹）"
-
-### 第二阶段：清理临时文件
-
-> 两种流程都执行。
-
-向用户展示确认表（项目/路径/大小/分级/操作），确认后逐项清理。
-
-> **清理前安全检查**（文件锁、自动保存文件排除、下载文件排除）：参阅 `references/safety-rules.md`
-
-### 第三阶段：使用 junction 移动大文件夹
-
-> **仅完整流程执行**。
-
-**迁移前必须通过 6 项前置检查**（云同步检测、重定向检测、已有 junction 检测、BitLocker 检查、NTFS 文件系统检查、空间检查）：
-
-> 详细前置检查和 10 步迁移操作命令：参阅 `references/migration-guide.md`
-> 安全规则细则（云同步/UWP/加密/游戏/开发者）：参阅 `references/safety-rules.md`
-
-核心原则：**复制 → 验证完整性（数量+大小必须一致） → rename 备份 → 创建 junction → 测试 → 删备份**
-
-### 第四阶段：清理应用缓存
-
-将应用缓存展示给用户确认（应用/路径/大小/分级/影响），不能确认则不清理。
-
-### 第五阶段：验证并报告
-
-1. 验证 junction：`powershell -ExecutionPolicy Bypass -File "<脚本目录>\verify.ps1"`
-2. 生成结果报告：
-```powershell
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Out-File "$env:TEMP\c-drive-scan-after.json" -Encoding UTF8
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode result -BeforeFile "$env:TEMP\c-drive-scan-before.json" -InputFile "$env:TEMP\c-drive-scan-after.json"
-```
-
-> **脚本失败时**：参阅 `references/fallback-commands.md` 获取手动验证命令和内联报告生成。
-
-在对话中展示操作汇总表（操作/项目/释放空间/分级/状态）。
-
-## 仅清理流程（只有 C 盘时）
-
-1. 执行「脚本路径定位」，记录脚本目录路径
-2. 扫描可清理项（`<脚本目录>\scan.ps1` 或 `references/fallback-commands.md` 手动扫描 + JSON 构建）
-3. **生成HTML分析报告并自动打开**（必须）：
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
-   ```
-4. **在终端中展示可清理和可迁移列表**（必须）：
-   ```powershell
-   $scanData = Get-Content "$env:TEMP\c-drive-scan-before.json" -Raw -Encoding UTF8 | ConvertFrom-Json
-   $allItems = @()
-   foreach ($groupName in $scanData.groups.PSObject.Properties.Name) {
-       $group = $scanData.groups.$groupName
-       foreach ($item in $group) {
-           $allItems += [ordered]@{
-               类别 = $groupName
-               项目 = Split-Path $item.path -Leaf
-               路径 = $item.path
-               大小GB = [math]::Round($item.size_mb / 1024, 2)
-               分级 = switch ($item.tier) {
-                   "green" { "🟢 安全" }
-                   "yellow" { "🟡 谨慎" }
-                   "red" { "🔴 危险" }
-               }
-               类型 = if ($item.movable) { "可迁移" } else { "可清理" }
-               说明 = $item.note
-           }
-       }
-   }
-   $allItems | Sort-Object 大小GB -Descending | Format-Table -AutoSize
-   ```
-5. 询问用户要执行哪些操作（HTML报告已自动打开）
-6. 逐项执行清理
-7. 重新扫描并生成结果报告（`<脚本目录>\build_report.ps1` -Mode result 或内联 HTML 生成）
-8. 汇报释放空间
-9. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
-
 ## 核心安全规则
 
 - **只重命名，不删除** — junction 验证通过前绝不删原文件夹
@@ -237,4 +94,13 @@ powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode
 
 scan.ps1 输出分组：`temp` / `browser_cache` / `app_cache` / `dev_cache` / `user_folders` / `game_library` / `system_logs` / `other` / `extra`
 
-> 典型使用流程（完整命令序列）：参阅 `references/migration-guide.md`
+## 参考文档索引
+
+| 文档 | 用途 |
+|------|------|
+| `references/flow-common.md` | 公共操作步骤（扫描、清理、验证、补充建议） |
+| `references/flow-full.md` | 完整流程编排（公共步骤 + 迁移阶段） |
+| `references/migration-guide.md` | 迁移详细步骤和 PowerShell 命令 |
+| `references/safety-rules.md` | 安全规则细则 |
+| `references/fallback-commands.md` | 脚本失败时的手动命令模板 |
+| `references/windows-data-layout.md` | Windows 数据布局参考 |
