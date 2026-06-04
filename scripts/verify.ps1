@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Junction 完整性验证脚本 - 检查所有 junction 链接是否有效

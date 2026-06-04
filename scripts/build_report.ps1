@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     C 盘扫描报告生成器 - 支持分析报告和结果报告两种模式

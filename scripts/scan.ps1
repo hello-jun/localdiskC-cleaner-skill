@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     C 盘空间扫描脚本 - 输出结构化 JSON，作为 AI agent 清理决策的基准数据
