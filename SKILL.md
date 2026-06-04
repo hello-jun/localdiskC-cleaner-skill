@@ -82,15 +82,65 @@ powershell -ExecutionPolicy Bypass -File "<脚本目录>\scan.ps1" | Tee-Object 
 
 > **脚本失败时**：参阅 `references/fallback-commands.md` 中的「一键手动扫描 + JSON 构建」，将 JSON 保存到 `$env:TEMP\c-drive-scan-before.json`，后续仍可生成 HTML 报告。
 
-3. **生成分析报告**（可选）：
+3. **生成分析报告并展示结果**：
 
-```powershell
-powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
-```
+   扫描完成后，必须立即执行以下操作：
 
-> 报告自动生成到桌面并在浏览器中打开。若脚本也不可用，使用 `references/fallback-commands.md` 中的「内联 HTML 报告生成」。
+   **步骤 1：生成HTML分析报告并自动打开**
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
+   ```
 
-将结果以表格展示（类别/项目/路径/大小/分级/说明），询问用户要执行哪些操作。
+   > 报告会自动生成到桌面并在浏览器中打开。若脚本不可可用，使用 `references/fallback-commands.md` 中的「内联 HTML 报告生成」。
+
+   **步骤 2：在终端中展示可清理和可迁移列表**
+
+   解析扫描结果，在终端中以表格形式展示所有可清理和可迁移项目：
+
+   ```powershell
+   # 读取扫描结果
+   $scanData = Get-Content "$env:TEMP\c-drive-scan-before.json" -Raw -Encoding UTF8 | ConvertFrom-Json
+
+   # 遍历所有分组，提取可清理和可迁移项
+   $allItems = @()
+   foreach ($groupName in $scanData.groups.PSObject.Properties.Name) {
+       $group = $scanData.groups.$groupName
+       foreach ($item in $group) {
+           $allItems += [ordered]@{
+               类别 = $groupName
+               项目 = Split-Path $item.path -Leaf
+               路径 = $item.path
+               大小GB = [math]::Round($item.size_mb / 1024, 2)
+               分级 = switch ($item.tier) {
+                   "green" { "🟢 安全" }
+                   "yellow" { "🟡 谨慎" }
+                   "red" { "🔴 危险" }
+               }
+               类型 = if ($item.movable) { "可迁移" } else { "可清理" }
+               说明 = $item.note
+           }
+       }
+   }
+
+   # 按大小排序并展示
+   $allItems | Sort-Object 大小GB -Descending | Format-Table -AutoSize
+   ```
+
+   **表格格式要求**：
+   - 必须包含列：类别、项目、路径、大小(GB)、分级、类型、说明
+   - 按大小从大到小排序
+   - 使用安全分级符号：🟢安全、🟡谨慎、🔴危险
+   - 类型列显示"可清理"或"可迁移"
+
+   **步骤 3：询问用户操作**
+
+   展示列表后，询问用户要执行哪些操作：
+   "以上是扫描发现的可清理和可迁移项目（HTML报告已自动打开）。请告诉我您想要执行哪些操作：
+   1. 清理所有🟢安全项目
+   2. 清理特定类别（如临时文件、浏览器缓存等）
+   3. 迁移特定文件夹到其他盘
+   4. 查看详细说明后再决定
+   请输入您的选择（如：1、2+临时文件、3+文档文件夹）"
 
 ### 第二阶段：清理临时文件
 
@@ -132,11 +182,39 @@ powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -Mode
 
 1. 执行「脚本路径定位」，记录脚本目录路径
 2. 扫描可清理项（`<脚本目录>\scan.ps1` 或 `references/fallback-commands.md` 手动扫描 + JSON 构建）
-3. 表格展示，用户逐项确认
-4. 逐项执行清理
-5. 重新扫描并生成 HTML 报告（`<脚本目录>\build_report.ps1` 或内联 HTML 生成）
-6. 汇报释放空间
-7. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
+3. **生成HTML分析报告并自动打开**（必须）：
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File "<脚本目录>\build_report.ps1" -InputFile "$env:TEMP\c-drive-scan-before.json"
+   ```
+4. **在终端中展示可清理和可迁移列表**（必须）：
+   ```powershell
+   $scanData = Get-Content "$env:TEMP\c-drive-scan-before.json" -Raw -Encoding UTF8 | ConvertFrom-Json
+   $allItems = @()
+   foreach ($groupName in $scanData.groups.PSObject.Properties.Name) {
+       $group = $scanData.groups.$groupName
+       foreach ($item in $group) {
+           $allItems += [ordered]@{
+               类别 = $groupName
+               项目 = Split-Path $item.path -Leaf
+               路径 = $item.path
+               大小GB = [math]::Round($item.size_mb / 1024, 2)
+               分级 = switch ($item.tier) {
+                   "green" { "🟢 安全" }
+                   "yellow" { "🟡 谨慎" }
+                   "red" { "🔴 危险" }
+               }
+               类型 = if ($item.movable) { "可迁移" } else { "可清理" }
+               说明 = $item.note
+           }
+       }
+   }
+   $allItems | Sort-Object 大小GB -Descending | Format-Table -AutoSize
+   ```
+5. 询问用户要执行哪些操作（HTML报告已自动打开）
+6. 逐项执行清理
+7. 重新扫描并生成结果报告（`<脚本目录>\build_report.ps1` -Mode result 或内联 HTML 生成）
+8. 汇报释放空间
+9. 空间仍紧张时给补充建议（🟢 `cleanmgr` / 🟡 卸载重装 / 🟡 `powercfg /h off` / 🔴 页面文件通过系统设置）
 
 ## 核心安全规则
 
